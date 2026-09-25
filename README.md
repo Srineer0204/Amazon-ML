@@ -1,27 +1,39 @@
-# Amazon ML Challenge 2026 - Business Entity Resolution
+# Amazon ML Challenge 2026 — Business Entity Resolution
 
-## Project Structure
-- `docs/`: Documentation and requirements.
-- `src/`: Source code for data processing, feature engineering, and modeling.
-- `tests/`: Unit tests for pipeline components.
-- `configs/`: Configuration files.
-- `experiments/`: Experiment logs and results.
-- `models/`: Saved models.
-- `outputs/`: Output predictions and submission files.
-- `synthetic_data/`: Scripts and data for local synthetic testing.
+A machine learning system for identifying matching business records across multiple data sources, developed as part of the **Amazon ML Challenge 2026**.
 
-## Setup
-1. Create virtual environment: `python -m venv .venv`
-2. Activate virtual environment: `.\.venv\Scripts\Activate.ps1`
-3. Install dependencies: `pip install -r requirements.txt`
+## Overview
 
-## Running Tests
-To run the synthetic data pipeline test:
-```bash
-python synthetic_data/run_test_pipeline.py
-```
+Business information collected from different sources can contain variations in:
 
-To run unit tests:
-```bash
-python -m unittest discover tests/
-```
+- Business names
+- Addresses
+- Abbreviations
+- Spelling
+- Formatting
+- Missing information
+
+The same real-world business may therefore appear as different records across different sources.
+
+This project aims to identify which records from **Source 2** and **Source 3** correspond to each business in **Source 1**, using business names, addresses, country information, and machine-learning-based similarity analysis.
+
+## Approach
+1. Data Validation
+2. Data Preprocessing
+3. Candidate Generation
+4. Feature Engineering
+5. Machine Learning
+6. Evaluation
+
+## Technology Stack
+- Python Core development language
+- Pandas	Data processing and TSV handling
+- NumPy	Numerical operations
+- RapidFuzz	Fuzzy string matching
+- Scikit-learn	Feature engineering and machine learning
+- CatBoost	Optional tree-based classification
+- unittest	Automated testing
+- Git	Version control
+
+## Team Rudra
+- Developed as a team project for the Amazon ML Challenge 2026.
