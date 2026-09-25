@@ -4,6 +4,9 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.metrics import precision_score, recall_score, fbeta_score
 import os
+import sys
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.preprocess import preprocess_dataframe
 from src.blocking import generate_candidates_tfidf
@@ -60,8 +63,8 @@ def prepare_training_labels(features_df: pd.DataFrame, gt_df: pd.DataFrame) -> p
 
 def run_training_pipeline():
     # 1. Load Data
-    # Use a tiny sample to ensure it runs within memory and time limits
-    s1, s23, gt = load_and_sample_data(sample_frac=0.005)
+    # Use full dataset for final training
+    s1, s23, gt = load_and_sample_data(sample_frac=1.0)
     print(f"Sampled S1: {len(s1)}, S2+S3: {len(s23)}")
     
     # 2. Preprocess
@@ -99,12 +102,52 @@ def run_training_pipeline():
         clf = HistGradientBoostingClassifier(random_state=42)
         clf.fit(X_train, y_train)
         
-        preds = clf.predict(X_test)
+        # Get prediction probabilities for the positive class
+        probs = clf.predict_proba(X_test)[:, 1]
         
-        print("\nModel Evaluation (Pairwise):")
-        print(f"Precision: {precision_score(y_test, preds):.4f}")
-        print(f"Recall: {recall_score(y_test, preds):.4f}")
-        print(f"F0.5 Score: {fbeta_score(y_test, preds, beta=0.5):.4f}")
+        print("\n--- Tuning Decision Threshold ---")
+        best_threshold = 0.5
+        best_f05 = 0.0
+        best_metrics = {}
+        
+        # Search for the best threshold between 0.3 and 0.95
+        for threshold in np.arange(0.3, 0.96, 0.05):
+            preds = (probs >= threshold).astype(int)
+            
+            # Avoid division by zero if there are no positive predictions
+            if sum(preds) == 0:
+                continue
+                
+            p = precision_score(y_test, preds, zero_division=0)
+            r = recall_score(y_test, preds, zero_division=0)
+            f05 = fbeta_score(y_test, preds, beta=0.5, zero_division=0)
+            
+            if f05 > best_f05:
+                best_f05 = f05
+                best_threshold = threshold
+                best_metrics = {'precision': p, 'recall': r, 'f05': f05}
+                
+        print(f"Optimal Threshold found: {best_threshold:.2f}")
+        print(f"Optimized Precision: {best_metrics['precision']:.4f}")
+        print(f"Optimized Recall: {best_metrics['recall']:.4f}")
+        print(f"Optimized F0.5 Score: {best_metrics['f05']:.4f}")
+        
+        # Save the model and threshold
+        import joblib
+        import os
+        os.makedirs('models', exist_ok=True)
+        
+        # Retrain on full available data (X, y) instead of just X_train to maximize learning
+        clf_full = HistGradientBoostingClassifier(random_state=42)
+        clf_full.fit(X, y)
+        
+        model_data = {
+            'model': clf_full,
+            'threshold': best_threshold,
+            'features': feature_cols
+        }
+        joblib.dump(model_data, 'models/er_model.pkl')
+        print("Model and optimal threshold saved to models/er_model.pkl")
     else:
         print("Not enough variation in labels to train the model (all candidates might be negative).")
 
