@@ -1,0 +1,36 @@
+# Python Virtual Environments
+.venv/
+venv/
+env/
+
+# Python Cache
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Datasets and Data
+dataset/
+data/
+
+# Outputs and Experiments
+outputs/
+experiments/
+
+# Trained Models
+*.cbm
+*.pkl
+*.joblib
+
+# Credentials and Environment Variables
+.env
+*.env
+credentials.json
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+
+# Official Challenge PDFs
+*.pdf
+docs/*.pdf
